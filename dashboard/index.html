@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Token Radar — pre-token protocols ranked by implied value</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#board">Skip to the board</a>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <p class="brand"><span class="radar-dot" aria-hidden="true"></span> Token Radar</p>
+    <p class="meta" id="meta">Snapshot 2026-11-14 · DefiLlama protocol index</p>
+  </div>
+</header>
+<main class="wrap" id="board">
+  <section class="hero">
+    <h1>Which pre-token protocol is worth farming next?</h1>
+    <p class="lede">The radar ranks every protocol whose DefiLlama record carries no token — the
+      40-protocol watchlist plus every early one below the floor — by an implied value computed
+      from the snapshot's own figures. Each row carries a farm plan with costs and times.</p>
+    <dl class="stats" id="stats"></dl>
+  </section>
+
+  <section class="controls" aria-label="Board controls">
+    <div class="tabs" role="tablist" aria-label="Token status">
+      <button type="button" role="tab" id="tab-pre" aria-selected="true">Pre-token</button>
+      <button type="button" role="tab" id="tab-live" aria-selected="false">Live token</button>
+    </div>
+    <label class="ctl">Search
+      <input type="search" id="q" placeholder="Search name, category or chain" autocomplete="off">
+    </label>
+    <label class="ctl">Category
+      <select id="category"><option value="all">All categories</option></select>
+    </label>
+    <label class="ctl">Chain
+      <select id="chain"><option value="all">All chains</option></select>
+    </label>
+    <label class="ctl check"><input type="checkbox" id="watch-only"> Watchlist only</label>
+    <label class="ctl">Sort by
+      <select id="sort">
+        <option value="implied">Implied value</option>
+        <option value="tvl">TVL</option>
+        <option value="change">7-day change</option>
+        <option value="age">Age</option>
+        <option value="name">Name</option>
+      </select>
+    </label>
+    <p class="count" id="count" aria-live="polite"></p>
+  </section>
+
+  <section class="board-wrap">
+    <p class="board-note" id="board-note">Pre-token protocols, strongest implied value first. Select a row for its value breakdown and farm plan.</p>
+    <table class="board" id="board-table">
+      <thead>
+        <tr>
+          <th data-sort="rank" aria-sort="descending"><button type="button">Rank</button></th>
+          <th data-sort="name"><button type="button">Protocol</button></th>
+          <th>Category</th>
+          <th>Chains</th>
+          <th data-sort="tvl"><button type="button">TVL</button></th>
+          <th data-sort="change"><button type="button">7d</button></th>
+          <th data-sort="age"><button type="button">Age</button></th>
+          <th data-sort="implied"><button type="button">Implied value</button></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <table class="board" id="live-table" hidden>
+      <thead>
+        <tr>
+          <th>Protocol</th>
+          <th>Category</th>
+          <th>Chains</th>
+          <th>TVL</th>
+          <th>Market cap</th>
+          <th>7d</th>
+        </tr>
+      </thead>
+      <tbody id="live-rows"></tbody>
+    </table>
+    <p class="empty" id="empty" hidden>No protocols match the current filter. <button type="button" id="clear-filters">Clear the filters</button></p>
+  </section>
+
+  <section class="method" aria-labelledby="method-h">
+    <h2 id="method-h">How the value is computed</h2>
+    <p class="formula">implied value = TVL × peer multiple × growth × maturity</p>
+    <ul>
+      <li><strong>Peer multiple.</strong> The median market-cap-to-TVL ratio of the protocols in
+        the same category whose token already trades, shrunk toward the all-category median when
+        peers are few — so a category with one loud peer cannot set the price on its own.</li>
+      <li><strong>Growth.</strong> From the protocol's seven-day TVL change, clamped to −50%…+150%
+        and weighted one half.</li>
+      <li><strong>Maturity.</strong> From how long the protocol has run: 0.70 at listing, rising
+        to 1.00 after two years with no token recorded.</li>
+    </ul>
+    <p class="honest">A protocol <em>records</em> no token — the snapshot is DefiLlama's record,
+      not proof, and a listed protocol may still have a token its record does not carry. Implied
+      values are this entry's model, not a promise and not a prediction that a token will be
+      issued. No protocol name is special-cased: the same arithmetic scores every row, and this
+      page recomputes every number it shows.</p>
+    <details class="peers">
+      <summary>Peer multiples by category</summary>
+      <div id="peer-table"></div>
+    </details>
+    <form class="sandbox" id="sandbox">
+      <h3>Try the model</h3>
+      <p>Change a constant and the page recomputes every row and re-ranks the board live.</p>
+      <label>Growth weight <input type="number" id="sb-growth" min="0" max="1" step="0.05"></label>
+      <label>Maturity floor <input type="number" id="sb-maturity" min="0.4" max="0.9" step="0.05"></label>
+      <label>Peer multiple scale <input type="number" id="sb-scale" min="0.5" max="2" step="0.05"></label>
+      <button type="button" id="sb-reset">Reset the model</button>
+      <p class="sandbox-note" id="sandbox-note" hidden>Showing recomputed values — the board's stored ranks are unchanged.</p>
+    </form>
+  </section>
+</main>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="detail" aria-label="Protocol detail" hidden>
+  <button type="button" class="drawer-close" id="detail-close">Close ✕</button>
+  <div id="detail-body"></div>
+</aside>
+
+<footer class="wrap foot">
+  <p>Data: DefiLlama protocol index snapshot, fetched 14 November 2026. The board ranks
+    protocols that record no token; protocols whose token already trades appear only in the
+    Live token view, at the market's own values. Implied values are the entry's own claim.</p>
+  <p>Built for make.fun's token-radar-01 bounty. The page renders with no network: every
+    number it shows comes from the snapshot beside it.</p>
+</footer>
+<script src="../data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
